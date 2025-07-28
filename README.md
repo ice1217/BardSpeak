@@ -26,5 +26,5 @@ A Python command-line tool that transforms modern English sentences into Shakesp
 
 2. Make the script executable (optional):
    ```bash
-   chmod +x shakespeare_transformer.py
+   chmod +x main.py
    
