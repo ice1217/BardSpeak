@@ -1,0 +1,36 @@
+modules = ["python-3.11"]
+
+[nix]
+channel = "stable-25_05"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Shakespeare Transformer Setup"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "shakespeare_cli_test"
+
+[[workflows.workflow]]
+name = "Shakespeare Transformer Setup"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pip install requests && python shakespeare_transformer.py \"Hello, how are you today?\" --verbose"
+
+[[workflows.workflow]]
+name = "shakespeare_cli_test"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pip install requests && python shakespeare_transformer.py \"Hello, how are you today?\""
