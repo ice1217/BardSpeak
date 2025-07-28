@@ -12,7 +12,9 @@ import os
 import sys
 import requests
 from typing import Optional, Dict, Any
+from dotenv import load_dotenv
 
+load_dotenv()  # This loads environment variables from a .env file into os.environ
 
 class ShakespeareTransformer:
     """Main class for handling Shakespeare text transformation."""
@@ -25,8 +27,8 @@ class ShakespeareTransformer:
             ollama_host: The Ollama API host URL
             model: The default model to use
         """
-        self.ollama_host = (ollama_host or os.getenv("OLLAMA_HOST", "http://localhost:11434")).rstrip('/')
-        self.default_model = model or os.getenv("OLLAMA_MODEL", "llama2")
+        self.ollama_host = (ollama_host or os.getenv("BARDSPEAK_OLLAMA_HOST", "http://localhost:11434")).rstrip('/')
+        self.default_model = model or os.getenv("BARDSPEAK_OLLAMA_MODEL", "llama2")
         self.api_endpoint = f"{self.ollama_host}/api/generate"
         
     def transform_to_shakespeare(self, sentence: str, model: Optional[str] = None) -> Optional[str]:
