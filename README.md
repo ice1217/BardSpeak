@@ -19,12 +19,18 @@ A Python command-line tool that transforms modern English sentences into Shakesp
 
 ## Installation
 
-1. Ensure you have the `requests` library installed:
+1. Install dependencies:
    ```bash
    pip install requests
    ```
 
-2. Make the script executable (optional):
+2. Set up environment variables (optional):
+   ```bash
+   export OLLAMA_HOST="http://your-ollama-host:11434"
+   export OLLAMA_MODEL="your-preferred-model"
+   ```
+
+3. Make the script executable (optional):
    ```bash
    chmod +x main.py
    

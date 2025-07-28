@@ -17,29 +17,34 @@ from typing import Optional, Dict, Any
 class ShakespeareTransformer:
     """Main class for handling Shakespeare text transformation."""
     
-    def __init__(self, ollama_host: str = "http://localhost:11434"):
+    def __init__(self, ollama_host: Optional[str] = None, model: Optional[str] = None):
         """
         Initialize the transformer with Ollama API configuration.
         
         Args:
             ollama_host: The Ollama API host URL
+            model: The default model to use
         """
-        self.ollama_host = ollama_host.rstrip('/')
+        self.ollama_host = (ollama_host or os.getenv("OLLAMA_HOST", "http://localhost:11434")).rstrip('/')
+        self.default_model = model or os.getenv("OLLAMA_MODEL", "llama2")
         self.api_endpoint = f"{self.ollama_host}/api/generate"
         
-    def transform_to_shakespeare(self, sentence: str, model: str = "llama2") -> Optional[str]:
+    def transform_to_shakespeare(self, sentence: str, model: Optional[str] = None) -> Optional[str]:
         """
         Transform a modern English sentence to Shakespearean English.
         
         Args:
             sentence: The modern English sentence to transform
-            model: The Ollama model to use for transformation
+            model: The Ollama model to use for transformation (uses default if None)
             
         Returns:
             The transformed Shakespearean text or None if transformation fails
         """
         if not sentence.strip():
             raise ValueError("Input sentence cannot be empty")
+            
+        # Use provided model or fall back to default
+        selected_model = model or self.default_model
             
         # Craft a specific prompt for Shakespeare transformation
         prompt = f"""Transform the following modern English sentence into Shakespearean English. 
@@ -51,14 +56,9 @@ Modern sentence: "{sentence}"
 Shakespearean version:"""
 
         payload = {
-            "model": model,
+            "model": selected_model,
             "prompt": prompt,
-            "stream": False,
-            "options": {
-                "temperature": 0.7,
-                "top_p": 0.9,
-                "max_tokens": 200
-            }
+            "stream": False
         }
         
         try:
@@ -86,7 +86,7 @@ Shakespearean version:"""
                     raise RuntimeError("Empty response from Ollama API")
                     
             elif response.status_code == 404:
-                raise RuntimeError(f"Model '{model}' not found. Please ensure the model is installed in Ollama.")
+                raise RuntimeError(f"Model '{selected_model}' not found. Please ensure the model is installed in Ollama.")
             else:
                 raise RuntimeError(f"API request failed with status {response.status_code}: {response.text}")
                 
@@ -149,14 +149,14 @@ Note: Ensure Ollama is running and has a compatible model installed (e.g., llama
     
     parser.add_argument(
         "--model",
-        default="llama2",
-        help="Ollama model to use for transformation (default: llama2)"
+        default=None,
+        help="Ollama model to use for transformation (default from OLLAMA_MODEL env var or 'llama2')"
     )
     
     parser.add_argument(
         "--host",
         default=None,
-        help="Ollama API host URL (default: http://localhost:11434)"
+        help="Ollama API host URL (default from OLLAMA_HOST env var or 'http://localhost:11434')"
     )
     
     parser.add_argument(
@@ -173,18 +173,17 @@ Note: Ensure Ollama is running and has a compatible model installed (e.g., llama
         
         if args.verbose:
             print(f"Original sentence: {sentence}")
-            print(f"Using model: {args.model}")
         
-        # Get Ollama host from argument, environment variable, or default
-        ollama_host = args.host or os.getenv("OLLAMA_HOST", "http://localhost:11434")
+        # Initialize transformer with optional overrides
+        transformer = ShakespeareTransformer(ollama_host=args.host, model=args.model)
         
         if args.verbose:
-            print(f"Ollama host: {ollama_host}")
+            print(f"Ollama host: {transformer.ollama_host}")
+            print(f"Using model: {transformer.default_model}")
             print("Transforming...")
         
-        # Initialize transformer and perform transformation
-        transformer = ShakespeareTransformer(ollama_host)
-        result = transformer.transform_to_shakespeare(sentence, args.model)
+        # Perform transformation
+        result = transformer.transform_to_shakespeare(sentence)
         
         if result:
             print(result)
